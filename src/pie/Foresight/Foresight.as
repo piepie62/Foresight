@@ -13,7 +13,7 @@ package pie.Foresight
 	 */
 	public class Foresight extends MovieClip
 	{
-		public const VERSION:String = "0.0.1";
+		public const VERSION:String = "0.0.2";
 		public const GAME_VERSION:String = "1.1.2b";
 		public const BEZEL_VERSION:String = "0.2.1";
 		public const MOD_NAME:String = "Foresight";
@@ -191,18 +191,13 @@ package pie.Foresight
 			var hud:Object = core.cnt.cntRetinaHud;
 			if (this.currentStage != core.stageData)
 			{
-				clearImages();			
-				for (var x:int = 0; x < 60; x++)
-				{
-					for (var y:int = 0; y < 38; y++)
-					{
-						hud.addChild(this.images[x][y]);
-					}
-				}
+				clearImages();
 				this.placingType = -1;
 				this.currentStage = core.stageData;
 				return;
 			}
+			
+			ensureLoadedImages();
 			
 			if (placingType == -1)
 			{
@@ -301,6 +296,20 @@ package pie.Foresight
 					return new Bitmap(core.cnt.bmpBuildHelperPylon.bitmapData);
 			}
 			return null;
+		}
+		
+		private function ensureLoadedImages(): void
+		{
+			if (!core.cnt.cntRetinaHud.contains(this.images[0][0]))
+			{
+				for (var x:int = 0; x < 60; x++)
+				{
+					for (var y:int = 0; y < 38; y++)
+					{
+						core.cnt.cntRetinaHud.addChild(this.images[x][y]);
+					}
+				}
+			}
 		}
 	}
 	
