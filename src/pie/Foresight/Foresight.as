@@ -6,7 +6,6 @@ package pie.Foresight
 	import flash.events.KeyboardEvent;
 	import flash.utils.*;
 	import flash.events.MouseEvent;
-	import flash.sampler.ClassFactory;
 	
 	/**
 	 * ...
