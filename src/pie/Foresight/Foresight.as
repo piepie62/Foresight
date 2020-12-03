@@ -6,6 +6,7 @@ package pie.Foresight
 	import flash.events.KeyboardEvent;
 	import flash.utils.*;
 	import flash.events.MouseEvent;
+	import flash.sampler.ClassFactory;
 	
 	/**
 	 * ...
@@ -39,6 +40,7 @@ package pie.Foresight
 		private var ranges:Array;
 		private var cursorImage:MovieClip;
 		private var cursorRange:MovieClip;
+		private var checkCore:Boolean;
 		
 		public function Foresight() 
 		{
@@ -163,7 +165,9 @@ package pie.Foresight
 				if (x >= 0 && y >= 0)
 				{
 					images[x][y].removeChildren();
-					images[x][y].addChild(createImageFor(placingType));
+					var img:* = createImageFor(placingType);
+					img.visible = true;
+					images[x][y].addChild(img);
 					setRangeFor(ranges[x][y], x, y, placingType);
 					logger.log("setRangeFor", "Radius " + ranges[x][y].circle.height / 2);
 					ranges[x][y].visible = true;
@@ -257,6 +261,29 @@ package pie.Foresight
 			setRangeFor(cursorRange, x, y, placingType);
 			cursorImage.x = x * 28 + 46;
 			cursorImage.y = y * 28 + 4;
+
+			for (x = 0; x < 60; x++)
+			{
+				for (y = 0; y < 38; y++)
+				{
+					if (core.buildingAreaMatrix != null && core.buildingAreaMatrix[y] != null && core.buildingAreaMatrix[y][x] != null)
+					{
+						if (core.buildingAreaMatrix[y][x] is (getDefinitionByName("com.giab.games.gcfw.entity.Wall") as Class))
+						{
+							if (this.images[x][y].numChildren > 0 && this.images[x][y].getChildAt(0) is (getDefinitionByName(getQualifiedClassName(core.cnt.mcBuildHelperWallLine)) as Class))
+							{
+								this.images[x][y].removeChildren();
+								this.ranges[x][y].visible = false;
+							}
+						}
+						else
+						{							
+							this.images[x][y].removeChildren();
+							this.ranges[x][y].visible = false;
+						}
+					}
+				}
+			}
 		}
 		
 		public function sceneLoadHook(e:Object): void
@@ -278,7 +305,7 @@ package pie.Foresight
 				for (var y:int = 0; y < 38; y++)
 				{
 					images[x][y].removeChildren();
-					ranges[x][y].circle.visible = false;
+					ranges[x][y].visible = false;
 				}
 			}
 		}
@@ -371,6 +398,7 @@ package pie.Foresight
 		{
 			if (type == -1 || type == 1 || type == 2 || type == 4)
 			{
+				range.circle.visible = false;
 				return;
 			}
 
