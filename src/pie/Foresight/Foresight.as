@@ -40,7 +40,7 @@ package pie.Foresight
 		private var ranges:Array;
 		private var cursorImage:MovieClip;
 		private var cursorRange:MovieClip;
-		private var checkCore:Boolean;
+		private var prevGrade:int;
 		
 		public function Foresight() 
 		{
@@ -91,6 +91,7 @@ package pie.Foresight
 					this.images[x][y].x = x * 28 + 46;
 					this.images[x][y].y = y * 28 + 4;
 					this.images[x][y].visible = true;
+					this.images[x][y].type = -1;
 				}
 			}
 			this.cursorRange = new rangeimage();
@@ -168,6 +169,7 @@ package pie.Foresight
 					var img:* = createImageFor(placingType);
 					img.visible = true;
 					images[x][y].addChild(img);
+					images[x][y].type = placingType;
 					setRangeFor(ranges[x][y], x, y, placingType);
 					logger.log("setRangeFor", "Radius " + ranges[x][y].circle.height / 2);
 					ranges[x][y].visible = true;
@@ -254,9 +256,24 @@ package pie.Foresight
 		public function frameHook(event:Object): void
 		{
 			var hud:Object = core.cnt.cntRetinaHud;
+			var x:int, y:int;
+			
+			if (this.prevGrade != core.gemGradeToCreate)
+			{
+				this.prevGrade = core.gemGradeToCreate;
+				g1gem = GV.ingameCreator.createGem(this.prevGrade, 0, false, false);
 				
-			var x:int = buildX(GV.main.mouseX);
-			var y:int = buildY(GV.main.mouseY);
+				for (x = 0; x < 60; x++)
+				{
+					for (y = 0; y < 38; y++)
+					{
+						setRangeFor(this.ranges[x][y], x, y, this.images[x][y].type);
+					}
+				}
+			}
+				
+			x = buildX(GV.main.mouseX);
+			y = buildY(GV.main.mouseY);
 			
 			setRangeFor(cursorRange, x, y, placingType);
 			cursorImage.x = x * 28 + 46;
@@ -291,7 +308,8 @@ package pie.Foresight
 			ensureLoadedImages();
 			clearImages();
 			this.placingType = -1;
-			g1gem = GV.ingameCreator.createGem(1, 0, false, false);
+			this.prevGrade = 1;
+			g1gem = GV.ingameCreator.createGem(this.prevGrade, 0, false, false);
 			lantern = new (getDefinitionByName("com.giab.games.gcfw.entity.Lantern") as Class)(0,0);
 			g1gem.containingBuilding = lantern;
 		}
