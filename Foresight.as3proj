@@ -4,14 +4,15 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="C:\Program Files (x86)\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\Foresight-0.0.2-for-1.1.2b.swf" />
+    <movie path="D:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\Foresight-0.0.3-for-1.1.2b.swf" />
     <movie fps="30" />
     <movie width="800" />
     <movie height="600" />
-    <movie version="25" />
+    <movie version="28" />
     <movie minorVersion="0" />
-    <movie platform="Flash Player" />
+    <movie platform="AIR" />
     <movie background="#FFFFFF" />
+    <movie preferredSDK="FlexAndAIR64;4.16.1;" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
@@ -85,7 +86,7 @@
   <!-- Other project options -->
   <options>
     <option showHiddenPaths="False" />
-    <option testMovie="Default" />
+    <option testMovie="Unknown" />
     <option testMovieCommand="" />
   </options>
   <!-- Plugin storage -->
