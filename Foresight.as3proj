@@ -4,7 +4,7 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="D:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\Foresight-0.0.3-for-1.1.2b.swf" />
+    <movie path="D:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\Foresight-0.0.4-for-1.2.1a.swf" />
     <movie fps="30" />
     <movie width="800" />
     <movie height="600" />
@@ -57,7 +57,8 @@
   </libraryPaths>
   <!-- External Libraries -->
   <externalLibraryPaths>
-    <!-- example: <element path="..." /> -->
+    <element path="D:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\BezelModLoader.swc" />
+    <element path="D:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\GemCraft Frostborn Wrath.swc" />
   </externalLibraryPaths>
   <!-- Runtime Shared Libraries -->
   <rslPaths>
@@ -73,7 +74,7 @@
   </library>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="src\pie\Foresight\Foresight.as" />
+    <compile path="src\pie\Foresight\ForesightMod.as" />
   </compileTargets>
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>

@@ -1,10 +1,30 @@
 package pie.Foresight
 {
+	import Bezel.Bezel;
+	import Bezel.Events.EventTypes;
+	import Bezel.Events.IngameClickOnSceneEvent;
+	import Bezel.Events.IngameKeyDownEvent;
+	import Bezel.Events.IngameNewSceneEvent;
+	import Bezel.Events.IngameRightClickOnSceneEvent;
+	import Bezel.Logger;
+	
+	import com.giab.common.abstract.SpriteExt;
+	import com.giab.common.constants.KeyCode;
+	
+	import com.giab.games.gcfw.GV;
+	import com.giab.games.gcfw.entity.Gem;
+	import com.giab.games.gcfw.entity.Lantern;
+	import com.giab.games.gcfw.entity.Wall;
+	import com.giab.games.gcfw.ingame.IngameCore;
+	import com.giab.games.gcfw.mcDyn.McBuildWallHelper;
+	import com.giab.games.gcfw.mcDyn.McRange;
+	import com.giab.games.gcfw.mcStat.CntIngame;
+	
 	import flash.display.Bitmap;
+	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
-	import flash.utils.*;
 	import flash.events.MouseEvent;
 	
 	/**
@@ -13,63 +33,42 @@ package pie.Foresight
 	 */
 	public class Foresight extends MovieClip
 	{
-		public const VERSION:String = "0.0.3";
-		public const GAME_VERSION:String = "1.1.2b";
-		public const BEZEL_VERSION:String = "0.2.1";
-		public const MOD_NAME:String = "Foresight";
-		
-		internal var bezel:Object;
-		internal var gameObjects:Object;
-		internal var logger:Object;
+		private var bezel:Bezel;
+		private var logger:Logger;
 		
 		// Game object shortcuts
-		internal var core:Object;/*IngameCore*/
-		internal var cnt:Object;/*CntIngame*/
-		internal var GV:Object;/*GV*/
-		internal var SB:Object;/*SB*/
-		internal var prefs:Object;/*Prefs*/
+		private var core:IngameCore;/*IngameCore*/
+		private var cnt:CntIngame;/*CntIngame*/
 		
-		private static var keycodes:Class;
-		private static var g1gem:Object;
-		private static var lantern:Object;
+		private var g1gem:Gem;
+		private var lantern:Lantern;
 		
 		private var placingType:int;
 		
-		private var images:Array;
-		private var ranges:Array;
+		private var images:Vector.<Vector.<MovieClip>>;
+		private var ranges:Vector.<Vector.<McRange>>;
 		private var cursorImage:MovieClip;
-		private var cursorRange:MovieClip;
+		private var cursorRange:McRange;
 		private var prevGrade:int;
 		
-		public function Foresight() 
-		{
-			super();
-		}
-		
-		public function bind(modLoader:Object, gameObjects:Object): Foresight
+		public function Foresight(modLoader:Bezel, gameObjects:Object) 
 		{
 			this.bezel = modLoader;
 			this.logger = modLoader.getLogger("Foresight");
 			
-			this.gameObjects = gameObjects;
-			this.core = gameObjects.GV.ingameCore;
-			this.cnt = gameObjects.GV.main.cntScreens.cntIngame;
-			this.SB = gameObjects.SB;
-			this.GV = gameObjects.GV;
-			this.prefs = gameObjects.prefs;
-
-			var rangeimage:Class = getDefinitionByName(getQualifiedClassName(this.cnt.mcRange)) as Class;
+			this.core = GV.ingameCore;
+			this.cnt = GV.ingameCore.cnt;
 			
 			this.placingType = -1;
-			this.images = new Array();
-			this.ranges = new Array();
+			this.images = new Vector.<Vector.<MovieClip>>();
+			this.ranges = new Vector.<Vector.<McRange>>();
 			for (var x:int = 0; x < 60; x++)
 			{
-				this.images.push(new Array());
-				this.ranges.push(new Array());
+				this.images[x] = new Vector.<MovieClip>();
+				this.ranges[x] = new Vector.<McRange>();
 				for (var y:int = 0; y < 38; y++)
 				{
-					this.ranges[x].push(new rangeimage());
+					this.ranges[x][y] = new McRange();
 					this.ranges[x][y].visible = false;
 					this.ranges[x][y].circle.x = x * 28 + 50;
 					this.ranges[x][y].circle.y = y * 28 + 4;
@@ -86,14 +85,14 @@ package pie.Foresight
 					this.ranges[x][y].shrineLine7.visible = false;
 					this.ranges[x][y].circleEnh.visible = false;
 					
-					this.images[x].push(new MovieClip());
+					this.images[x][y] = new MovieClip();
 					this.images[x][y].x = x * 28 + 46;
 					this.images[x][y].y = y * 28 + 4;
 					this.images[x][y].visible = true;
 					this.images[x][y].type = -1;
 				}
 			}
-			this.cursorRange = new rangeimage();
+			this.cursorRange = new McRange();
 			this.cursorRange.visible = false;
 			this.cursorRange.circle.visible = true;
 			this.cursorRange.mcMask.width = 1680;
@@ -111,33 +110,29 @@ package pie.Foresight
 			this.cursorImage = new MovieClip();
 			this.cursorImage.visible = false;
 			
-			keycodes = getDefinitionByName("com.giab.common.constants.KeyCode") as Class;
-			
-			installEventHooks(modLoader);
+			installEventHooks();
 			
 			logger.log("bind", "Foresight loaded");
-			
-			return this;
 		}
 		
-		public function installEventHooks(modLoader:Object): void
+		public function installEventHooks(): void
 		{
-			bezel.addEventListener("ingameClickOnScene", clickOnSceneHook);
-			bezel.addEventListener("ingameRightClickOnScene", rightClickOnSceneHook);
-			bezel.addEventListener("ingameKeyDown", keyDownHook);
-			bezel.addEventListener("ingameNewScene", sceneLoadHook);
+			bezel.addEventListener(EventTypes.INGAME_CLICK_ON_SCENE, clickOnSceneHook);
+			bezel.addEventListener(EventTypes.INGAME_RIGHT_CLICK_ON_SCENE, rightClickOnSceneHook);
+			bezel.addEventListener(EventTypes.INGAME_KEY_DOWN, keyDownHook);
+			bezel.addEventListener(EventTypes.INGAME_NEW_SCENE, sceneLoadHook);
 			GV.main.addEventListener("enterFrame", frameHook);
 		}
 		
 		public function unload(): void
 		{
-			bezel.removeEventListener("ingameClickOnScene", clickOnSceneHook);
-			bezel.removeEventListener("ingameRightClickOnScene", rightClickOnSceneHook);
-			bezel.removeEventListener("ingameKeyDown", keyDownHook);
-			bezel.removeEventListener("ingameNewScene", sceneLoadHook);
-			GV.main.removeEventListener("enterFrame", frameHook);
+			bezel.removeEventListener(EventTypes.INGAME_CLICK_ON_SCENE, clickOnSceneHook);
+			bezel.removeEventListener(EventTypes.INGAME_RIGHT_CLICK_ON_SCENE, rightClickOnSceneHook);
+			bezel.removeEventListener(EventTypes.INGAME_KEY_DOWN, keyDownHook);
+			bezel.removeEventListener(EventTypes.INGAME_NEW_SCENE, sceneLoadHook);
+			GV.main.addEventListener("enterFrame", frameHook);
 			
-			var hud:Object = core.cnt.cntRetinaHud;
+			var hud:SpriteExt = core.cnt.cntRetinaHud;
 			for (var x:int = 0; x < 60; x++)
 			{
 				for (var y:int = 0; y < 38; y++)
@@ -154,7 +149,7 @@ package pie.Foresight
 			}
 		}
 		
-		public function clickOnSceneHook(e:Object): void
+		public function clickOnSceneHook(e:IngameClickOnSceneEvent): void
 		{
 			var event:MouseEvent = e.eventArgs.event;
 			if (placingType != -1)
@@ -165,7 +160,7 @@ package pie.Foresight
 				if (x >= 0 && y >= 0)
 				{
 					images[x][y].removeChildren();
-					var img:* = createImageFor(placingType);
+					var img:DisplayObject = createImageFor(placingType);
 					img.visible = true;
 					images[x][y].addChild(img);
 					images[x][y].type = placingType;
@@ -181,7 +176,7 @@ package pie.Foresight
 			}
 		}
 		
-		public function rightClickOnSceneHook(e:Object): void
+		public function rightClickOnSceneHook(e:IngameRightClickOnSceneEvent): void
 		{
 			if (placingType != -1)
 			{
@@ -204,7 +199,7 @@ package pie.Foresight
 						if ((xMod == 0 && yMod == 0) ||
 							(x + xMod >= 0 && x + xMod < 60 && y + yMod >= 0 && y + yMod < 38
 							 && images[x + xMod][y + yMod].numChildren != 0 &&
-							 !(images[x + xMod][y + yMod].getChildAt(0) is (getDefinitionByName(getQualifiedClassName(core.cnt.mcBuildHelperWallLine)) as Class))))
+							 !(images[x + xMod][y + yMod].getChildAt(0) is McBuildWallHelper)))
 						{
 							images[x + xMod][y + yMod].removeChildren();
 							ranges[x + xMod][y + yMod].visible = false;
@@ -214,7 +209,7 @@ package pie.Foresight
 			}
 		}
 		
-		public function keyDownHook(e:Object): void
+		public function keyDownHook(e:IngameKeyDownEvent): void
 		{
 			var event:KeyboardEvent = e.eventArgs.event;
 			var type:int = typeFromKeycode(event.keyCode);
@@ -252,9 +247,9 @@ package pie.Foresight
 			}
 		}
 		
-		public function frameHook(event:Object): void
+		public function frameHook(event:Event): void
 		{
-			var hud:Object = core.cnt.cntRetinaHud;
+			var hud:SpriteExt = core.cnt.cntRetinaHud;
 			var x:int, y:int;
 			
 			if (this.prevGrade != core.gemGradeToCreate)
@@ -284,16 +279,16 @@ package pie.Foresight
 				{
 					if (core.buildingAreaMatrix != null && core.buildingAreaMatrix[y] != null && core.buildingAreaMatrix[y][x] != null)
 					{
-						if (core.buildingAreaMatrix[y][x] is (getDefinitionByName("com.giab.games.gcfw.entity.Wall") as Class))
+						if (core.buildingAreaMatrix[y][x] is Wall)
 						{
-							if (this.images[x][y].numChildren > 0 && this.images[x][y].getChildAt(0) is (getDefinitionByName(getQualifiedClassName(core.cnt.mcBuildHelperWallLine)) as Class))
+							if (this.images[x][y].numChildren > 0 && this.images[x][y].getChildAt(0) is McBuildWallHelper)
 							{
 								this.images[x][y].removeChildren();
 								this.ranges[x][y].visible = false;
 							}
 						}
 						else
-						{							
+						{
 							this.images[x][y].removeChildren();
 							this.ranges[x][y].visible = false;
 						}
@@ -302,20 +297,20 @@ package pie.Foresight
 			}
 		}
 		
-		public function sceneLoadHook(e:Object): void
+		public function sceneLoadHook(e:IngameNewSceneEvent): void
 		{
 			ensureLoadedImages();
 			clearImages();
 			this.placingType = -1;
 			this.prevGrade = 1;
 			g1gem = GV.ingameCreator.createGem(this.prevGrade, 0, false, false);
-			lantern = new (getDefinitionByName("com.giab.games.gcfw.entity.Lantern") as Class)(0,0);
+			lantern = new Lantern(0,0);
 			g1gem.containingBuilding = lantern;
 		}
 		
 		private function clearImages(): void
 		{
-			var hud:Object = core.cnt.cntRetinaHud;
+			var hud:SpriteExt = core.cnt.cntRetinaHud;
 
 			for (var x:int = 0; x < 60; x++)
 			{
@@ -332,22 +327,22 @@ package pie.Foresight
 			switch (code)
 			{
 				// Tower
-				case keycodes.T:
+				case KeyCode.T:
 					return 0;
 				// Wall
-				case keycodes.W:
+				case KeyCode.W:
 					return 1;
 				// Trap
-				case keycodes.R:
+				case KeyCode.R:
 					return 2;
 				// Lantern
-				case keycodes.L:
+				case KeyCode.L:
 					return 3;
 				// Amplifier
-				case keycodes.A:
+				case KeyCode.A:
 					return 4;
 				// Pylons
-				case keycodes.P:
+				case KeyCode.P:
 					return 5;
 			}
 			return -1;
@@ -379,39 +374,38 @@ package pie.Foresight
 			}
 		}
 		
-		private function createImageFor(type:int): *
+		private function createImageFor(type:int): DisplayObject
 		{
-			var ret:Object = null;
 			switch (type)
 			{
 				case 0:
-					ret = new Bitmap(core.cnt.bmpBuildHelperTower.bitmapData);
-					break;
+					return new Bitmap(core.cnt.bmpBuildHelperTower.bitmapData);
 				case 1:
-					ret = new (getDefinitionByName(getQualifiedClassName(core.cnt.mcBuildHelperWallLine)))();
-					ret.gotoAndStop(1);
-					ret.x = 4;
-					ret.y = 4;
-					break;
+					{
+						var mbwh:McBuildWallHelper = new McBuildWallHelper();
+						mbwh.gotoAndStop(1);
+						mbwh.x = 4;
+						mbwh.y = 4;
+						return mbwh;
+					}
 				case 2:
-					ret = new Bitmap(core.cnt.bmpBuildHelperTrap.bitmapData);
-					ret.x = 8;
-					ret.y = 8;
-					break;
+					{
+						var bmp:Bitmap = new Bitmap(core.cnt.bmpBuildHelperTrap.bitmapData);
+						bmp.x = 8;
+						bmp.y = 8;
+						return bmp;
+					}
 				case 3:
-					ret = new Bitmap(core.cnt.bmpBuildHelperLantern.bitmapData);
-					break;
+					return new Bitmap(core.cnt.bmpBuildHelperLantern.bitmapData);
 				case 4:
-					ret = new Bitmap(core.cnt.bmpBuildHelperAmp.bitmapData);
-					break;
+					return new Bitmap(core.cnt.bmpBuildHelperAmp.bitmapData);
 				case 5:
-					ret = new Bitmap(core.cnt.bmpBuildHelperPylon.bitmapData);
-					break;
+					return new Bitmap(core.cnt.bmpBuildHelperPylon.bitmapData);
 			}
-			return ret;
+			return null;
 		}
 		
-		private function setRangeFor(range:Object, x:int, y:int, type:int): void
+		private function setRangeFor(range:McRange, x:int, y:int, type:int): void
 		{
 			if (type == -1 || type == 1 || type == 2 || type == 4)
 			{
@@ -423,7 +417,7 @@ package pie.Foresight
 			range.circle.y = y * 28 + 36;
 			range.circle.visible = true;
 			
-			var radius:Number;
+			var radius:Number = 0;
 			switch (type)
 			{
 				case 0:

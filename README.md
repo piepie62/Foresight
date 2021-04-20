@@ -55,6 +55,9 @@ Please submit an issue to [The issue tracker](https://github.com/piepie62/Foresi
 
 You can find me on GemCraft's Discord server: https://discord.gg/ftyaJhx - piepie62#3412
 
+# Building
+To build Foresight, you must use the AS3 project located in [Bezel's repository](https://github.com/gemforce-team/BezelModLoader) to build GCFW.
+Place the resulting SWC in your GCFW folder as `GemCraft Frostborn Wrath.swc`.
 
 # Disclaimer
 This is not an official modification.
