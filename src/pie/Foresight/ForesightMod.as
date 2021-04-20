@@ -10,7 +10,7 @@ package pie.Foresight
 	public class ForesightMod extends MovieClip implements BezelMod
 	{
 		
-		private var foresight:Foresight;
+		private var foresight:Object;
 		
 		public function ForesightMod() 
 		{
@@ -29,8 +29,11 @@ package pie.Foresight
 		
 		public function unload(): void
 		{
-			foresight.unload();
-			foresight = null;
+			if (foresight != null)
+			{
+				foresight.unload();
+				foresight = null;
+			}
 		}
 		
 	}
