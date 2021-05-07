@@ -254,7 +254,7 @@ package pie.Foresight
 			
 			if (this.prevGrade != core.gemGradeToCreate)
 			{
-				this.prevGrade = core.gemGradeToCreate;
+				this.prevGrade = isNaN(core.gemGradeToCreate) ? 1 : core.gemGradeToCreate;
 				g1gem = GV.ingameCreator.createGem(this.prevGrade, 0, false, false);
 				
 				for (x = 0; x < 60; x++)
