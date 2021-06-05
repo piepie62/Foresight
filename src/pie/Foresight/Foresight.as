@@ -215,7 +215,7 @@ package pie.Foresight
 			var type:int = typeFromKeycode(event.keyCode);
 			if (event.ctrlKey)
 			{
-				if (type != -1 && placingType != type)
+				if (type != -1 && placingType != type && shouldMakeGhost(type))
 				{
 					cursorImage.removeChildren();
 					e.eventArgs.continueDefault = false;
@@ -427,6 +427,7 @@ package pie.Foresight
 					radius = g1gem.sd5_EnhancedOrTrapOrLantern.range.g();
 					break;
 				case 3:
+					g1gem.containingBuilding = this.lantern;
 					g1gem.isInLantern = true;
 					g1gem.isInTower = false;
 					g1gem.recalculateSds(true);
@@ -456,6 +457,33 @@ package pie.Foresight
 			
 			core.cnt.cntRetinaHud.addChild(cursorImage);
 			core.cnt.cntRetinaHud.addChild(cursorRange);
+		}
+		
+		private function shouldMakeGhost(type:int): Boolean
+		{
+			switch (type)
+			{
+				// Tower
+				case 0:
+					return this.core.arrIsSpellBtnVisible[13];
+				// Wall
+				case 1:
+					return this.core.arrIsSpellBtnVisible[12];
+				// Trap
+				case 2:
+					return this.core.arrIsSpellBtnVisible[15];
+				// Lantern
+				case 3:
+					return this.core.arrIsSpellBtnVisible[16];
+				// Amplifier
+				case 4:
+					return this.core.arrIsSpellBtnVisible[14];
+				// Pylons
+				case 5:
+					return this.core.arrIsSpellBtnVisible[17];
+			}
+			
+			return false;
 		}
 	}
 	

@@ -17,7 +17,7 @@ package pie.Foresight
 			super();
 		}
 		
-		public function get VERSION():String { return "0.0.4"; }
+		public function get VERSION():String { return "0.0.5"; }
 		public function get GAME_VERSION():String { return "1.2.1a"; }
 		public function get BEZEL_VERSION():String { return "1.0.0"; }
 		public function get MOD_NAME():String { return "Foresight"; }
